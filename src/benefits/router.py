@@ -8,7 +8,8 @@ from starlette.responses import FileResponse
 from src.auth.models import User
 from src.auth.utils import get_current_user, get_current_admin
 from src.benefits.models import BenefitBase
-from src.benefits.utils import add_benefit, get_benefits, get_benefit, delete_benefit, update_benefit, update_cover
+from src.benefits.utils import add_benefit, get_benefits, get_benefit, delete_benefit, update_benefit, update_cover, \
+    get_categories
 from src.database import get_session
 
 router = APIRouter(prefix="/benefits",
@@ -20,6 +21,13 @@ async def get_all_benefits(session: AsyncSession = Depends(get_session),
                            user_data: User = Depends(get_current_user)):
     benefits = await get_benefits(session)
     return benefits
+
+
+@router.get("/categories")
+async def get_all_categories(session: AsyncSession = Depends(get_session),
+                             admin: User = Depends(get_current_admin)):
+    categories = await get_categories(session)
+    return categories
 
 
 @router.post("/new")

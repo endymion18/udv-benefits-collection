@@ -6,7 +6,7 @@ from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 from starlette import status
 
-from src.benefits.models import Benefit, BenefitBase, BenefitShort
+from src.benefits.models import Benefit, BenefitBase, BenefitShort, Category
 from src.config import SERVER_HOSTNAME
 
 
@@ -75,3 +75,9 @@ async def update_benefit(benefit_id: int, benefit_data: BenefitBase, session: As
     await session.commit()
     return BenefitShort(benefit.name, benefit.card_name, benefit.cover_path)
 
+
+async def get_categories(session: AsyncSession):
+    categories = await session.exec(select(Category))
+    categories = categories.all()
+    print(categories)
+    return categories
