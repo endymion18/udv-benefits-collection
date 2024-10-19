@@ -1,13 +1,13 @@
 import os
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
+from fastapi import APIRouter, Depends, UploadFile, HTTPException
 from sqlmodel.ext.asyncio.session import AsyncSession
 from starlette.responses import FileResponse
 
 from src.auth.models import User
 from src.auth.utils import get_current_user, get_current_admin
-from src.benefits.models import Benefit, BenefitBase
+from src.benefits.models import BenefitBase
 from src.benefits.utils import add_benefit, get_benefits, get_benefit, delete_benefit, update_benefit, update_cover
 from src.database import get_session
 

@@ -1,7 +1,7 @@
 import os
 import uuid
 
-from fastapi import HTTPException, UploadFile, File
+from fastapi import HTTPException, UploadFile
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 from starlette import status

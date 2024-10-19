@@ -4,9 +4,8 @@ from starlette import status
 from starlette.responses import JSONResponse
 
 from src.auth.exceptions import WrongEmail, NotVerified, NotActive, InvalidToken
-from src.auth.models import UserBase, User
-from src.auth.utils import verify_user, send_email, generate_auth_link, verify_auth_token, get_current_user, \
-    get_current_admin
+from src.auth.models import UserBase
+from src.auth.utils import verify_user, send_email, generate_auth_link, verify_auth_token
 from src.database import get_session
 
 router = APIRouter(tags=["Auth"], prefix="/users")
