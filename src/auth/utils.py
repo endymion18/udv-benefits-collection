@@ -4,12 +4,13 @@ import uuid
 from email.message import EmailMessage
 
 import jwt
-from fastapi import Depends
+from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
+from starlette import status
 
-from src.auth.exceptions import WrongEmail, NotVerified, NotActive
+from src.auth.exceptions import WrongEmail, NotVerified, NotActive, InvalidToken
 from src.auth.models import User, AuthToken
 from src.config import SECRET_KEY, EMAIL_FROM, EMAIL_PASS, SERVER_HOSTNAME
 from src.database import get_session
@@ -49,6 +50,8 @@ async def generate_auth_link(user_id: uuid.UUID, session: AsyncSession):
 async def verify_auth_token(token: str, session: AsyncSession):
     auth_token = await session.exec(select(AuthToken).where(AuthToken.token == token))
     auth_token = auth_token.first()
+    if auth_token is None:
+        raise InvalidToken("Ссылка для входа недействительна")
     jwt_token = await encode_jwt_token({"sub": auth_token.user_id.__str__()})
 
     await session.delete(auth_token)
@@ -80,3 +83,12 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     user_id = decoded_token.get("sub")
     user = await session.exec(select(User).where(User.id == user_id))
     return user.first()
+
+
+async def get_current_admin(credentials: HTTPAuthorizationCredentials = Depends(security),
+                            session: AsyncSession = Depends(get_session)):
+    user = await get_current_user(credentials, session)
+    if user.role_id == 1:
+        return user
+    else:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
