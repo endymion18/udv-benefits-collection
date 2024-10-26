@@ -7,9 +7,9 @@ from src.config import SERVER_HOSTNAME
 
 class BenefitBase(SQLModel):
     name: str = Field(max_length=80, nullable=False)
-    card_name: str = Field(max_length=80, nullable=True)
-    text: str = Field(nullable=True)
-    categories: list[int] = Field(sa_column=Column(ARRAY(Integer), nullable=True))
+    card_name: str = Field(max_length=80, nullable=True, default=None)
+    text: str = Field(nullable=True, default=None)
+    categories: list[int] = Field(sa_column=Column(ARRAY(Integer), nullable=True), default=None)
 
 
 class Benefit(BenefitBase, table=True):

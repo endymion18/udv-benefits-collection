@@ -53,7 +53,11 @@ async def verify_auth_token(token: str, session: AsyncSession):
     if auth_token is None:
         raise InvalidToken("Ссылка для входа недействительна")
     jwt_token = await encode_jwt_token({"sub": auth_token.user_id.__str__()})
-
+    user = await session.exec(select(User).where(User.id == auth_token.user_id))
+    user = user.first()
+    if user.email_verified is False:
+        user.email_verified = True
+    session.add(user)
     await session.delete(auth_token)
     await session.commit()
 
@@ -82,7 +86,12 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     decoded_token = jwt.decode(credentials.credentials, SECRET_KEY, ["HS256"])
     user_id = decoded_token.get("sub")
     user = await session.exec(select(User).where(User.id == user_id))
-    return user.first()
+    user = user.first()
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+    if not user.active_user:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User is deleted")
+    return user
 
 
 async def get_current_admin(credentials: HTTPAuthorizationCredentials = Depends(security),
@@ -91,4 +100,4 @@ async def get_current_admin(credentials: HTTPAuthorizationCredentials = Depends(
     if user.role_id == 1:
         return user
     else:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
+        raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED, detail="Access denied")

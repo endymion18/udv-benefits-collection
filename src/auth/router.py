@@ -24,7 +24,7 @@ async def login(user_data: UserBase,
     auth_link = await generate_auth_link(user_uuid, session)
     await send_email(email, auth_link)
 
-    return {"success": f"Ссылка для входа отправлена на {email}"}
+    return {"success": f"Message has been sent to {email}"}
 
 
 @router.get("/authorize/{token}",
