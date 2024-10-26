@@ -24,11 +24,13 @@ class Category(SQLModel, table=True):
 
 
 class BenefitShort:
+    id: int
     name: str
     card_name: str
     cover_url: str
 
-    def __init__(self, name, card_name, cover_path):
+    def __init__(self, benefit_id, name, card_name, cover_path):
+        self.id = benefit_id
         self.name = name
         self.card_name = card_name
         self.cover_url = f"{SERVER_HOSTNAME}/benefits/images/{cover_path}" if cover_path is not None else None

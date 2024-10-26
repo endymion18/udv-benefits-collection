@@ -10,6 +10,7 @@ from alembic import context
 from src.benefits.models import *
 from src.admin.models import *
 from src.auth.models import *
+from src.analitycs.models import *
 
 from sqlmodel import SQLModel
 

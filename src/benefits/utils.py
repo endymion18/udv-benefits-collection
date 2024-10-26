@@ -1,5 +1,6 @@
 import os
 import uuid
+from pathlib import Path
 
 from fastapi import HTTPException, UploadFile
 from sqlmodel import select
@@ -8,6 +9,9 @@ from starlette import status
 
 from src.benefits.models import Benefit, BenefitBase, BenefitShort, Category
 from src.config import SERVER_HOSTNAME
+
+project_root = Path(__file__).resolve().parents[2]
+files_path = project_root / "files/benefit_covers"
 
 
 async def add_benefit(benefit_data: BenefitBase, session: AsyncSession):
@@ -20,7 +24,7 @@ async def add_benefit(benefit_data: BenefitBase, session: AsyncSession):
 async def get_benefits(session: AsyncSession):
     benefits = await session.exec(select(Benefit))
     benefits = benefits.all()
-    benefits = [BenefitShort(benefit.name, benefit.card_name, benefit.cover_path) for benefit in benefits]
+    benefits = [BenefitShort(benefit.id, benefit.name, benefit.card_name, benefit.cover_path) for benefit in benefits]
 
     return benefits
 
@@ -41,11 +45,10 @@ async def delete_benefit(benefit_id: int, session: AsyncSession):
 
 
 async def update_cover(benefit_id: int, image: UploadFile | None, session: AsyncSession):
-    os.chdir(".")
     benefit = await get_benefit(benefit_id, session)
     try:
         if benefit.cover_path is not None:
-            os.remove(f"files/benefit_covers/{benefit.cover_path}")
+            os.remove(files_path / benefit.cover_path)
     except FileNotFoundError as e:
         print(e)
 
@@ -53,8 +56,7 @@ async def update_cover(benefit_id: int, image: UploadFile | None, session: Async
         image_id = uuid.uuid4()
         ext = os.path.splitext(image.filename)[1]
         image_path = f"{image_id}.{ext}"
-
-        with open(f"files/benefit_covers/{image_path}", "wb") as uploaded_file:
+        with open(files_path / image_path, "wb") as uploaded_file:
             file_content = await image.read()
             uploaded_file.write(file_content)
 

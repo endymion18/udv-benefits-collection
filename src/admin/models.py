@@ -1,6 +1,5 @@
 import datetime
 
-import pytz
 from dateutil.relativedelta import relativedelta
 import uuid
 

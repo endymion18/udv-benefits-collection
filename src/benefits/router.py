@@ -15,6 +15,9 @@ from src.database import get_session
 router = APIRouter(prefix="/benefits",
                    tags=["Benefits"])
 
+project_root = Path(__file__).resolve().parents[2]
+files_path = project_root / "files/benefit_covers"
+
 
 @router.get("/all")
 async def get_all_benefits(session: AsyncSession = Depends(get_session),
@@ -75,6 +78,5 @@ async def delete_benefit_by_id(benefit_id: int,
 
 @router.get("/images/{path}")
 async def get_benefit_cover(path: str):
-    os.chdir(".")
-    img_path = Path(f"files/benefit_covers/{path}")
+    img_path = Path(files_path / path)
     return FileResponse(img_path)
