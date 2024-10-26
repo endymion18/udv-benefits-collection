@@ -1,0 +1,28 @@
+services:
+  udv-benefits:
+    build:
+      context: .
+    restart: unless-stopped
+    env_file:
+      - .env-dev
+    command:
+      - "./app-init.sh"
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+
+  postgres:
+    env_file:
+      - .env-dev
+    container_name: postgres_db
+    image: postgres:16
+    restart: unless-stopped
+    volumes:
+      - db_home:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  db_home:
+    external: false
