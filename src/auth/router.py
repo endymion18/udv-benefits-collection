@@ -22,7 +22,7 @@ async def login(user_data: UserBase,
     except (WrongEmail, NotVerified, NotActive) as error:
         return JSONResponse(content={"detail": error.__str__()}, status_code=status.HTTP_400_BAD_REQUEST)
     auth_link = await generate_auth_link(user_uuid, session)
-    await send_email(email, auth_link)
+    await send_email(email, auth_link, 'login')
 
     return {"success": f"Message has been sent to {email}"}
 

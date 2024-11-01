@@ -20,7 +20,7 @@ async def get_all_users(session: AsyncSession = Depends(get_session), admin: Use
 @router.post("/users/add")
 async def add_new_user(user_info: UserInfo, session: AsyncSession = Depends(get_session),
                        admin: User = Depends(get_current_admin)):
-    return await add_user(user_info, session)
+    return await add_user(user_info, session, admin.email)
 
 
 @router.get("/users/{uuid}")

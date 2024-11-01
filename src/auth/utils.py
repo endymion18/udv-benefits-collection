@@ -6,6 +6,7 @@ from email.message import EmailMessage
 import jwt
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from pygments.lexer import default
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 from starlette import status
@@ -65,17 +66,27 @@ async def verify_auth_token(token: str, session: AsyncSession):
     return {"success": jwt_token}
 
 
-async def send_email(email_to: str, message: str):
+async def send_email(email_to: str, message: str, msg_type: str = None, invite_from: str = None):
     msg = EmailMessage()
-    msg['Subject'] = 'Mail confirmation'
     msg['From'] = EMAIL_FROM
     msg['To'] = email_to
+    match msg_type:
+        case 'login':
+            msg['Subject'] = 'Логин в личный кабинет сервиса "Кафетерий бенефитов"'
+            with open('./static/index.html') as html:
+                text = html.read()
+                text = text.replace('url-example', message)
+        case 'invite':
+            msg['Subject'] = 'Приглашение в "Кафетерий бенефитов"'
+            with open('./static/invite.html') as html:
+                text = html.read()
+                text = text.replace('url-example', message)
+                text = text.replace('ivanivanov@udv.ru', invite_from)
+        case _:
+            msg['Subject'] = 'Mail confirmation'
+            text = ''
 
-    # with open('./src/auth/message.html') as html:
-    #     text = html.read()
-    # text = text.replace('000000', code)
-    # text = text.replace('zaglushka@gmail.com', email_to)
-    msg.set_content(message)
+    msg.set_content(text, 'html')
 
     with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
         server.login(EMAIL_FROM, EMAIL_PASS)

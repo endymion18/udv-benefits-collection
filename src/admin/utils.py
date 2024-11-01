@@ -88,7 +88,7 @@ async def make_user_inactive(uuid: str, session: AsyncSession):
     return {"success": f"User {user.email} is deleted"}
 
 
-async def add_user(user_info: UserInfo, session: AsyncSession):
+async def add_user(user_info: UserInfo, session: AsyncSession, email_from: str):
     try:
         role_id = 1 if user_info.administration else 2
         user = User(email=user_info.email, active_user=True, role_id=role_id)
@@ -99,7 +99,7 @@ async def add_user(user_info: UserInfo, session: AsyncSession):
                             detail=f"User with email {user_info.email} already exists")
     # send email
     auth_link = await generate_auth_link(user.id, session)
-    await send_email(user_info.email, auth_link)
+    await send_email(user_info.email, auth_link, 'invite', email_from)
     user_info_table = UserInfoTable(user_id=user.id, **user_info.model_dump())
     session.add(user_info_table)
     await session.commit()
