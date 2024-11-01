@@ -10,6 +10,7 @@ from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 from starlette import status
 
+from src.admin.models import UserInfoView, UserInfoTable
 from src.auth.exceptions import WrongEmail, NotVerified, NotActive, InvalidToken
 from src.auth.models import User, AuthToken
 from src.config import SECRET_KEY, EMAIL_FROM, EMAIL_PASS, SERVER_HOSTNAME
@@ -101,3 +102,28 @@ async def get_current_admin(credentials: HTTPAuthorizationCredentials = Depends(
         return user
     else:
         raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED, detail="Access denied")
+
+
+async def get_profile(session: AsyncSession, user: User):
+    user_instance = await session.exec(select(User, UserInfoTable).join(UserInfoTable).
+                                       where(User.active_user == True).
+                                       where(User.id == user.id))
+
+    user_instance = user_instance.first()
+
+    if user_instance is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    user, user_info = user_instance
+
+    user_info_view = UserInfoView(
+        user_uuid=user.id,
+        email=user.email,
+        full_name=user_info.full_name,
+        place_of_employment=user_info.place_of_employment,
+        position=user_info.position,
+        employment_date=user_info.employment_date,
+        administration=user.role_id,
+    )
+
+    return user_info_view

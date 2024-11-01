@@ -8,7 +8,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from starlette import status
 
 from src.benefits.models import Benefit, BenefitBase, BenefitShort, Category
-from src.config import SERVER_HOSTNAME
+from src.config import SERVER_URL
 
 project_root = Path(__file__).resolve().parents[2]
 files_path = project_root / "files/benefit_covers"
@@ -65,7 +65,7 @@ async def update_cover(benefit_id: int, image: UploadFile | None, session: Async
         session.add(benefit)
         await session.commit()
 
-        return f"{SERVER_HOSTNAME}/benefits/images/{image_path}"
+        return f"{SERVER_URL}/benefits/images/{image_path}"
 
 
 async def update_benefit(benefit_id: int, benefit_data: BenefitBase, session: AsyncSession):
@@ -75,7 +75,7 @@ async def update_benefit(benefit_id: int, benefit_data: BenefitBase, session: As
         setattr(benefit, key, value)
     session.add(benefit)
     await session.commit()
-    return BenefitShort(benefit.name, benefit.card_name, benefit.cover_path)
+    return BenefitShort(benefit_id, benefit.name, benefit.card_name, benefit.cover_path)
 
 
 async def get_categories(session: AsyncSession):

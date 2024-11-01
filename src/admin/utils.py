@@ -5,8 +5,7 @@ from starlette import status
 from starlette.exceptions import HTTPException
 
 from src.admin.models import UserInfoTable, UserInfoView, UserInfo
-from src.auth.models import User, UserBase
-from src.auth.router import login
+from src.auth.models import User
 from src.auth.utils import send_email, generate_auth_link
 
 

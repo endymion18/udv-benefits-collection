@@ -15,3 +15,4 @@ EMAIL_FROM = os.environ.get("EMAIL_ADDRESS_FROM")
 EMAIL_PASS = os.environ.get("EMAIL_PASSWORD")
 
 SERVER_HOSTNAME = os.environ.get("SERVER_HOSTNAME")
+SERVER_URL = os.environ.get("SERVER_URL")

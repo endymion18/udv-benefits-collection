@@ -2,7 +2,7 @@ from sqlalchemy.dialects.postgresql import ARRAY
 from sqlmodel import SQLModel, Field, Column, Integer
 from sqlalchemy import Interval
 
-from src.config import SERVER_HOSTNAME
+from src.config import SERVER_URL
 
 
 class BenefitBase(SQLModel):
@@ -33,4 +33,4 @@ class BenefitShort:
         self.id = benefit_id
         self.name = name
         self.card_name = card_name
-        self.cover_url = f"{SERVER_HOSTNAME}/benefits/images/{cover_path}" if cover_path is not None else None
+        self.cover_url = f"{SERVER_URL}/benefits/images/{cover_path}" if cover_path is not None else None
