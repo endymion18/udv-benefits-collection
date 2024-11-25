@@ -12,6 +12,7 @@ services:
       - postgres
     volumes:
       - image_folder:/udv-benefits-collection/files/benefit_covers
+      - files_folder:/udv-benefits-collection/files/receipts
     security_opt:
       - apparmor=unconfined
     healthcheck:
@@ -36,3 +37,6 @@ volumes:
     external: false
   image_folder:
     external: false
+  files_folder:
+    external: false
+

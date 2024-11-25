@@ -1,7 +1,8 @@
 import os
 from pathlib import Path
+from typing import Optional
 
-from fastapi import APIRouter, Depends, UploadFile, HTTPException
+from fastapi import APIRouter, Depends, UploadFile, HTTPException, File
 from sqlmodel.ext.asyncio.session import AsyncSession
 from starlette.responses import FileResponse
 
@@ -9,7 +10,7 @@ from src.auth.models import User
 from src.auth.utils import get_current_user, get_current_admin
 from src.benefits.models import BenefitBase
 from src.benefits.utils import add_benefit, get_benefits, get_benefit, delete_benefit, update_benefit, update_cover, \
-    get_categories
+    get_categories, validate_benefit_request
 from src.database import get_session
 
 router = APIRouter(prefix="/benefits",
@@ -22,7 +23,7 @@ files_path = project_root / "files/benefit_covers"
 @router.get("/all")
 async def get_all_benefits(session: AsyncSession = Depends(get_session),
                            user_data: User = Depends(get_current_user)):
-    benefits = await get_benefits(session)
+    benefits = await get_benefits(user_data, session)
     return benefits
 
 
@@ -44,7 +45,7 @@ async def add_new_benefit(benefit: BenefitBase,
 @router.get("/{benefit_id}")
 async def get_benefit_info_by_id(benefit_id: int,
                                  session: AsyncSession = Depends(get_session),
-                                 admin: User = Depends(get_current_admin)):
+                                 admin: User = Depends(get_current_user)):
     benefit = await get_benefit(benefit_id, session)
     return benefit
 
@@ -80,3 +81,11 @@ async def delete_benefit_by_id(benefit_id: int,
 async def get_benefit_cover(path: str):
     img_path = Path(files_path / path)
     return FileResponse(img_path)
+
+
+@router.post("/apply/{benefit_id}")
+async def apply_benefit(benefit_id: int, session: AsyncSession = Depends(get_session),
+                        user: User = Depends(get_current_user), files: list[UploadFile | str] = None):
+    if len(files) != 0:
+        files = None if isinstance(files[0], str) else files
+    return await validate_benefit_request(benefit_id, files, session, user)

@@ -6,6 +6,7 @@ from starlette.responses import JSONResponse
 from src.auth.exceptions import WrongEmail, NotVerified, NotActive, InvalidToken
 from src.auth.models import UserBase, User
 from src.auth.utils import verify_user, send_email, generate_auth_link, verify_auth_token, get_current_user, get_profile
+from src.benefits.utils import get_user_requests_by_id
 from src.database import get_session
 
 router = APIRouter(tags=["Auth"], prefix="/users")
@@ -43,3 +44,9 @@ async def authorize(token: str, session: AsyncSession = Depends(get_session)):
             status_code=status.HTTP_200_OK)
 async def get_user_profile(session: AsyncSession = Depends(get_session), user_data: User = Depends(get_current_user)):
     return await get_profile(session, user_data)
+
+
+@router.get("/requests",
+            status_code=status.HTTP_200_OK)
+async def get_user_requests(session: AsyncSession = Depends(get_session), user_data: User = Depends(get_current_user)):
+    return await get_user_requests_by_id(user_data.id, session)

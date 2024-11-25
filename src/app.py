@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import FileResponse
@@ -39,7 +37,7 @@ async def ping():
 
 @app.get("/logo")
 async def get_logo():
-    return FileResponse("./static/logo.svg")
+    return FileResponse("./static/logo.png")
 
 app.include_router(auth_router)
 app.include_router(admin_router)
