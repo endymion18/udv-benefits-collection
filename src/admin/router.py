@@ -5,10 +5,11 @@ from src.admin.models import UserInfo
 from src.admin.utils import get_users, get_user, update_user_info, make_user_inactive, add_user
 from src.auth.models import User
 from src.auth.utils import get_current_admin
+from src.benefit_requests.utils import get_all_requests, change_request_status
 from src.database import get_session
 
 router = APIRouter(prefix="/admin",
-                   tags=["Users"])
+                   tags=["Admin"])
 
 
 @router.get("/users")
@@ -43,3 +44,26 @@ async def remove_user_by_uuid(uuid: str,
                               session: AsyncSession = Depends(get_session),
                               admin: User = Depends(get_current_admin)):
     return await make_user_inactive(uuid, session)
+
+
+@router.get("/requests")
+async def get_all_benefit_requests(sort_by_date_desc: bool = True, session: AsyncSession = Depends(get_session),
+                                   admin: User = Depends(get_current_admin)):
+    return await get_all_requests(sort_by_date_desc, session)
+
+
+@router.get("/requests/{request_id}")
+async def get_request_info():
+    pass
+
+
+@router.put("/requests/{request_id}/apply")
+async def apply_request(request_id: int, session: AsyncSession = Depends(get_session),
+                        admin: User = Depends(get_current_admin)):
+    return await change_request_status(request_id, 2, session)
+
+
+@router.put("/requests/{request_id}/deny")
+async def deny_request(request_id: int, session: AsyncSession = Depends(get_session),
+                       admin: User = Depends(get_current_admin)):
+    return await change_request_status(request_id, 3, session)
