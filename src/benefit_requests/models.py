@@ -2,7 +2,9 @@ import datetime
 import uuid
 
 from sqlalchemy.dialects.postgresql import ARRAY
-from sqlmodel import SQLModel, Field, Column, String
+from sqlmodel import SQLModel, Field, Column, String, Relationship
+
+from src.benefits.models import Benefit
 
 
 class BenefitStatuses(SQLModel, table=True):
@@ -17,7 +19,9 @@ class UserBenefitRelation(SQLModel, table=True):
 
     id: int | None = Field(default=None, primary_key=True)
     user_id: uuid.UUID = Field(foreign_key="user.id")
-    benefit_id: int = Field(foreign_key="benefit.id")
+    benefit_id: int = Field(foreign_key="benefit.id", ondelete="CASCADE")
     created_at: datetime.datetime | None = Field(default_factory=datetime.datetime.now)
     files: list[str] = Field(sa_column=Column(ARRAY(String), nullable=True), default=None)
     status: int = Field(foreign_key="benefit_statuses.id")
+
+    benefit: Benefit | None = Relationship(back_populates="requests")

@@ -1,5 +1,5 @@
 from sqlalchemy.dialects.postgresql import ARRAY
-from sqlmodel import SQLModel, Field, Column, Integer
+from sqlmodel import SQLModel, Field, Column, Integer, Relationship
 from sqlalchemy import Interval
 
 from src.config import SERVER_URL
@@ -17,6 +17,8 @@ class BenefitBase(SQLModel):
 class Benefit(BenefitBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     cover_path: str = Field(max_length=150, nullable=True)
+
+    requests: list["UserBenefitRelation"] = Relationship(back_populates='benefit', cascade_delete=True)
 
 
 class Category(SQLModel, table=True):
