@@ -6,7 +6,7 @@ from starlette.responses import FileResponse
 
 from src.auth.models import User
 from src.auth.utils import get_current_user, get_current_admin
-from src.benefit_requests.utils import validate_benefit_request, change_request_status
+from src.benefit_requests.utils import validate_benefit_request, change_request_status, validate_insurance_request
 from src.benefits.models import BenefitBase
 from src.benefits.utils import add_benefit, get_benefits, get_benefit, delete_benefit, update_benefit, update_cover, \
     get_categories
@@ -90,7 +90,17 @@ async def apply_benefit(benefit_id: int, session: AsyncSession = Depends(get_ses
     return await validate_benefit_request(benefit_id, files, session, user)
 
 
-@router.put("/deny/{request_id}/")
+@router.put("/deny/{request_id}")
 async def deny_request(request_id: int, session: AsyncSession = Depends(get_session),
                        user: User = Depends(get_current_user)):
     return await change_request_status(request_id, 3, session)
+
+
+@router.post("/insurance")
+async def apply_insurance_benefit(benefit_id: int, insurance_member: str, insurance_type: str,
+                                  session: AsyncSession = Depends(get_session),
+                                  user: User = Depends(get_current_user), files: list[UploadFile | str] = None):
+    if len(files) != 0:
+        files = None if isinstance(files[0], str) else files
+
+    return await validate_insurance_request(benefit_id, insurance_member, insurance_type, files, session, user)

@@ -1,12 +1,18 @@
+from pathlib import Path
+
 from fastapi import APIRouter, Depends
 from sqlmodel.ext.asyncio.session import AsyncSession
+from starlette.responses import FileResponse
 
 from src.admin.models import UserInfo
 from src.admin.utils import get_users, get_user, update_user_info, make_user_inactive, add_user
 from src.auth.models import User
-from src.auth.utils import get_current_admin
-from src.benefit_requests.utils import get_all_requests, change_request_status
+from src.auth.utils import get_current_admin, get_current_user
+from src.benefit_requests.utils import get_all_requests, change_request_status, get_request_info_by_id
 from src.database import get_session
+
+project_root = Path(__file__).resolve().parents[2]
+files_path = project_root / "files/receipts"
 
 router = APIRouter(prefix="/admin",
                    tags=["Admin"])
@@ -53,8 +59,15 @@ async def get_all_benefit_requests(sort_by_date_desc: bool = True, session: Asyn
 
 
 @router.get("/requests/{request_id}")
-async def get_request_info():
-    pass
+async def get_request_info(request_id: int, session: AsyncSession = Depends(get_session),
+                           admin: User = Depends(get_current_admin)):
+    return await get_request_info_by_id(request_id, session)
+
+
+@router.get("/requests/{request_id}/{path}")
+async def get_request_file(path: str):
+    img_path = Path(files_path / path)
+    return FileResponse(img_path)
 
 
 @router.put("/requests/{request_id}/apply")

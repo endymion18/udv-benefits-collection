@@ -11,7 +11,8 @@ from src.admin.models import UserInfoTable
 from src.auth.models import User
 from src.benefits.models import Benefit
 from src.benefit_requests.models import UserBenefitRelation, BenefitStatuses
-from src.benefits.utils import get_benefit
+from src.benefits.utils import get_benefit, files_path
+from src.config import SERVER_URL
 
 project_root = Path(__file__).resolve().parents[2]
 receipts_path = project_root / "files/receipts"
@@ -29,7 +30,6 @@ async def validate_benefit_request(benefit_id: int, files: list[UploadFile] | No
         files = None
 
     if files is not None:
-        print(files)
         if len(files) > 5:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Too much files")
         for file in files:
@@ -124,4 +124,60 @@ async def change_request_status(request_id: int, request_status: int, session: A
         request.status = request_status
         session.add(request)
         await session.commit()
-        return {"detail": f"Заявка {statuses[request_status-1].name}"}
+        return {"detail": f"Заявка {statuses[request_status - 1].name}"}
+
+
+async def get_request_info_by_id(request_id: int, session: AsyncSession):
+    request = await session.exec(
+        select(UserBenefitRelation, Benefit, BenefitStatuses,
+               UserInfoTable).join(BenefitStatuses,
+                                   UserBenefitRelation.status == BenefitStatuses.id).join(
+            Benefit, UserBenefitRelation.benefit_id == Benefit.id).join(
+            UserInfoTable, UserInfoTable.user_id == UserBenefitRelation.user_id).where(
+            UserBenefitRelation.id == request_id))
+    request = request.first()
+    if request is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"Request with id {request_id} is not found")
+    else:
+        relation, benefit, benefit_status, user_info = request
+        files = []
+        if relation.files is not None:
+            for path in relation.files:
+                files.append(f"{SERVER_URL}/admin/requests/{request_id}/{path}" if path is not None else None)
+        request_info = {
+            "request_id": relation.id,
+            "name": benefit.name,
+            "user_name": user_info.full_name,
+            "creation_date": relation.created_at,
+            "status": f"Заявка {benefit_status.name}",
+            "attached_files": files
+        }
+    return request_info
+
+
+async def validate_insurance_request(benefit_id: int, insurance_member: str, insurance_type: str,
+                                     files: list[UploadFile], session: AsyncSession,
+                                     user: User):
+    file_paths = None
+    benefit = await get_benefit(benefit_id, session)
+    if files is not None:
+        if len(files) > 5:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Too much files")
+        for file in files:
+            if not file.content_type.startswith('image/'):
+                raise HTTPException(status_code=400,
+                                    detail=f"{file.filename} file type not allowed. Only images are accepted.")
+            if file.size > 20000000:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                    detail=f"File {file.filename} is too large")
+        file_paths = await upload_files(benefit_id, files)
+    user_benefit_relation = UserBenefitRelation(user_id=user.id,
+                                                benefit_id=benefit.id,
+                                                files=file_paths,
+                                                status=1,
+                                                additional_info=[insurance_member, insurance_type])
+    session.add(user_benefit_relation)
+    await session.commit()
+
+    return {"detail": "Benefit request successfully created"}

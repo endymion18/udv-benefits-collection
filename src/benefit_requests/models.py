@@ -23,5 +23,6 @@ class UserBenefitRelation(SQLModel, table=True):
     created_at: datetime.datetime | None = Field(default_factory=datetime.datetime.now)
     files: list[str] = Field(sa_column=Column(ARRAY(String), nullable=True), default=None)
     status: int = Field(foreign_key="benefit_statuses.id")
+    additional_info: list[str] = Field(sa_column=Column(ARRAY(String), nullable=True), default=None)
 
     benefit: Benefit | None = Relationship(back_populates="requests")
